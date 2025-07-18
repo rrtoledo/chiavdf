@@ -81,7 +81,65 @@ form GenerateWesolowski(form &y, form &x_init,
     return x;
 }
 
+std::vector<uint8_t> EvaluateOnly(integer& D, form& x, uint64_t num_iterations, std::string shutdown_file_path) {
+    integer L = root(-D, 4);
+    PulmarkReducer reducer;
+    form y = form::from_abd(x.a, x.b, D);
+    int d_bits = D.num_bits();
+
+    integer iters = integer(num_iterations);
+    form f1 = FastPowFormNucomp(x, D, iters, L, reducer);
+    std::vector<uint8_t> result = SerializeForm(f1, d_bits);
+
+    return result;
+}
+
 std::vector<uint8_t> ProveSlow(integer& D, form& x, uint64_t num_iterations, std::string shutdown_file_path) {
+    integer L = root(-D, 4);
+    PulmarkReducer reducer;
+    form y = form::from_abd(x.a, x.b, D);
+    int d_bits = D.num_bits();
+
+    int k, l;
+    ApproximateParameters(num_iterations, l, k);
+    if (k <= 0) k = 1;
+    if (l <= 0) l = 1;
+    int const kl = k * l;
+
+    uint64_t const size_vec = (num_iterations + kl - 1) / kl;
+    std::vector<form> intermediates(size_vec);
+    form* cursor = intermediates.data();
+    for (uint64_t i = 0; i < num_iterations; i++) {
+        if (i % kl == 0) {
+            *cursor = y;
+            ++cursor;
+        }
+        nudupl_form(y, y, D, L);
+        reducer.reduce(y);
+
+        // Check for cancellation every 65535 interations
+        if ((i&0xffff)==0) {
+            // Only if we have a shutdown path
+            if (shutdown_file_path!="") {
+                struct stat buffer;
+
+                int statrst = stat(shutdown_file_path.c_str(), &buffer);
+                if ((statrst != 0) && (errno != EINTR)) {
+                    // shutdown file doesn't exist, abort out
+                    return {};
+                }
+            }
+        }
+    }
+
+    form proof = GenerateWesolowski(y, x, D, reducer, intermediates, num_iterations, k, l);
+    std::vector<uint8_t> result = SerializeForm(y, d_bits);
+    std::vector<uint8_t> proof_bytes = SerializeForm(proof, d_bits);
+    result.insert(result.end(), proof_bytes.begin(), proof_bytes.end());
+    return result;
+}
+
+std::vector<uint8_t> EvalSlow(integer& D, form& x, uint64_t num_iterations, std::string shutdown_file_path) {
     integer L = root(-D, 4);
     PulmarkReducer reducer;
     form y = form::from_abd(x.a, x.b, D);
@@ -119,9 +177,25 @@ std::vector<uint8_t> ProveSlow(integer& D, form& x, uint64_t num_iterations, std
         }
     }
 
-    form proof = GenerateWesolowski(y, x, D, reducer, intermediates, num_iterations, k, l);
     std::vector<uint8_t> result = SerializeForm(y, d_bits);
-    std::vector<uint8_t> proof_bytes = SerializeForm(proof, d_bits);
-    result.insert(result.end(), proof_bytes.begin(), proof_bytes.end());
+    for (form inter : intermediates){
+        std::vector<uint8_t> inter_ser = SerializeForm(inter, d_bits);
+        std::string inter_s(inter_ser.begin(), inter_ser.end());
+        result.insert(result.end(), inter_ser.begin(), inter_ser.end());
+        }
+    return result;
+}
+
+std::vector<uint8_t> ProveInter(integer& D, form& x, form& y, std::vector<form> const& intermediates, uint64_t num_iterations) {
+    PulmarkReducer reducer;
+    int d_bits = D.num_bits();
+
+    int k, l;
+    ApproximateParameters(num_iterations, l, k);
+    if (k <= 0) k = 1;
+    if (l <= 0) l = 1;
+
+    form proof = GenerateWesolowski(y, x, D, reducer, intermediates, num_iterations, k, l);
+    std::vector<uint8_t> result = SerializeForm(proof, d_bits);
     return result;
 }
