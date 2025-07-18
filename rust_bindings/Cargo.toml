@@ -10,11 +10,29 @@ repository = "https://github.com/Chia-Network/chiavdf"
 
 [dependencies]
 link-cplusplus = "1.0.10"
+rand = "0.9.0"
+sha2 = "0.10.6"
 
 [build-dependencies]
 bindgen = "0.71.1"
 cmake = "0.1.52"
+rand = "0.9.0"
+rand_chacha = "0.9.0"
+lazy_static = "1.4.0"
+sha2 = "0.10.6"
 
 [dev-dependencies]
 hex = "0.4.3"
 hex-literal = "1.0.0"
+criterion = { version = "0.5.1", features = ["html_reports"]}
+rand_core = "0.9.0"
+rand_chacha = "0.9.0"
+sha2 = "0.10.6"
+
+[[bench]]
+name = "bench_acc"
+harness = false
+
+[[bench]]
+name = "bench_vdf"
+harness = false
