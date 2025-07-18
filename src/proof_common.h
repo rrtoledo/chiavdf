@@ -6,6 +6,22 @@
 const int B_bits = 264;
 const int B_bytes = (B_bits + 7) / 8;
 
+// Generates a random pseudo int using the hash and check method:
+// Randomly chooses x with bit-length `length`.
+integer HashInt(std::vector<uint8_t> seed, int length) {
+    assert (length % 8 == 0);
+    std::vector<uint8_t> hash(picosha2::k_digest_size);  // output of sha256
+    std::vector<uint8_t> blob;  // output of 1024 bit hash expansions
+    std::vector<uint8_t> sprout = seed;  // seed plus nonce
+
+    blob.resize(0);
+    picosha2::hash256(sprout.begin(), sprout.end(), hash.begin(), hash.end());
+    blob.insert(blob.end(), hash.begin(),
+                hash.begin() + std::min(hash.size(), length / 8 - blob.size()));
+     assert ((int) blob.size() * 8 == length);
+    integer p(blob);
+    return p;
+}
 
 // Generates a random pseudoprime using the hash and check method:
 // Randomly chooses x with bit-length `length`, then applies a mask
