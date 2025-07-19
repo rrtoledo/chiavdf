@@ -9,7 +9,7 @@ def test_prove_and_verify():
     discriminant_size = 512
     discriminant = create_discriminant(discriminant_challenge, discriminant_size)
     form_size = 388
-    initial_el = b"\x08" + (b"\x00" * (form_size-1))
+    initial_el = b"\x08" + (b"\x00" * (form_size - 1))
 
     iters = 1000000
     t1 = time.time()
@@ -31,13 +31,7 @@ def test_prove_and_verify():
     # Creates another proof starting at the previous output
     iters_2 = 200000
     t1 = time.time()
-    result_2 = prove(
-        discriminant_challenge,
-        result_y,
-        discriminant_size,
-        iters_2,
-        ""
-    )
+    result_2 = prove(discriminant_challenge, result_y, discriminant_size, iters_2, "")
     t2 = time.time()
     print(f"IPS: {iters_2 / (t2 - t1)}")
 

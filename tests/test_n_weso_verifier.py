@@ -10,7 +10,9 @@ from chiavdf import (
 )
 
 
-def prove_n_weso(discriminant_challenge, x, discriminant_size, form_size, iters, witness, wrong_segm):
+def prove_n_weso(
+    discriminant_challenge, x, discriminant_size, form_size, iters, witness, wrong_segm
+):
     iters_chunk = iters // (witness + 1)
     partials = []
     discriminant = create_discriminant(discriminant_challenge, discriminant_size)
@@ -52,12 +54,12 @@ def prove_n_weso(discriminant_challenge, x, discriminant_size, form_size, iters,
         assert is_valid
         assert y == y_from_compression
         if not wrong_segm:
-            inner_proof += iters_chunk.to_bytes(8, byteorder='big')
+            inner_proof += iters_chunk.to_bytes(8, byteorder="big")
         else:
             iters_wrong = iters_chunk + 1
-            inner_proof += iters_wrong.to_bytes(8, byteorder='big')
+            inner_proof += iters_wrong.to_bytes(8, byteorder="big")
             wrong_segm = False
-        inner_proof += b.to_bytes(33, byteorder='big')
+        inner_proof += b.to_bytes(33, byteorder="big")
         inner_proof += proof
     return y_result, y_proof + inner_proof
 
@@ -66,12 +68,22 @@ def test_prove_n_weso_and_verify():
     discriminant_challenge = secrets.token_bytes(10)
     discriminant_size = 512
     discriminant = create_discriminant(discriminant_challenge, discriminant_size)
-    print(f"discriminant_challenge {discriminant_challenge.hex()} discriminant {discriminant}")
+    print(
+        f"discriminant_challenge {discriminant_challenge.hex()} discriminant {discriminant}"
+    )
     form_size = 388
-    initial_el = b"\x08" + (b"\x00" * (form_size-1))
+    initial_el = b"\x08" + (b"\x00" * (form_size - 1))
 
     for iters in [1000000, 5000000, 10000000]:
-        y, proof = prove_n_weso(discriminant_challenge, initial_el, discriminant_size, form_size, iters, 5, False)
+        y, proof = prove_n_weso(
+            discriminant_challenge,
+            initial_el,
+            discriminant_size,
+            form_size,
+            iters,
+            5,
+            False,
+        )
         is_valid = verify_n_wesolowski(
             str(discriminant),
             initial_el,
@@ -90,7 +102,15 @@ def test_prove_n_weso_and_verify():
             5,
         )
         assert not is_valid
-        y, proof_wrong = prove_n_weso(discriminant_challenge, initial_el, discriminant_size, form_size, iters, 10, True)
+        y, proof_wrong = prove_n_weso(
+            discriminant_challenge,
+            initial_el,
+            discriminant_size,
+            form_size,
+            iters,
+            10,
+            True,
+        )
         is_valid = verify_n_wesolowski(
             str(discriminant),
             initial_el,
