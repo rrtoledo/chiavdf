@@ -8,8 +8,8 @@ def test_prove_and_verify():
     discriminant_challenge = secrets.token_bytes(10)
     discriminant_size = 512
     discriminant = create_discriminant(discriminant_challenge, discriminant_size)
-    form_size = 100
-    initial_el = b"\x08" + (b"\x00" * 99)
+    form_size = 388
+    initial_el = b"\x08" + (b"\x00" * (form_size-1))
 
     iters = 1000000
     t1 = time.time()
