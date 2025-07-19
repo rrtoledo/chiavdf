@@ -35,7 +35,7 @@ pub fn bench_update(c: &mut Criterion) {
     let mut group = c.benchmark_group("Accumulator");
     group.bench_function("Update", |b| {
         b.iter_custom(|n| {
-            let mut rng = ChaCha20Rng::from_os_rng();   
+            let mut rng = ChaCha20Rng::from_os_rng();
             let seed = rng.next_u32().to_ne_bytes().to_vec();
             let discriminant = &setup(&seed);
             let (acc_x, acc_y) = init_accumulators(discriminant);
