@@ -2,7 +2,7 @@ import secrets
 
 from chiavdf import (
     create_discriminant,
-    prove,
+    prove_disc,
     verify_wesolowski,
     verify_n_wesolowski,
     verify_n_wesolowski_with_b,
@@ -17,13 +17,13 @@ def prove_n_weso(
     partials = []
     discriminant = create_discriminant(discriminant_challenge, discriminant_size)
     for _ in range(witness):
-        result = prove(discriminant_challenge, x, discriminant_size, iters_chunk, "")
+        result = prove_disc(discriminant, x, iters_chunk, "")
         y = result[:form_size]
         proof = result[form_size : 2 * form_size]
         partials.append((x, y, proof))
         x = y
     iters -= iters_chunk * witness
-    result = prove(discriminant_challenge, x, discriminant_size, iters, "")
+    result = prove_disc(discriminant, x, iters, "")
     y_result = result[:form_size]
     y_proof = result[form_size : 2 * form_size]
     assert verify_wesolowski(discriminant, x, y_result, y_proof, iters)
@@ -77,7 +77,7 @@ def test_prove_n_weso_and_verify():
     form_size = 388
     initial_el = b"\x08" + (b"\x00" * (form_size - 1))
 
-    for iters in [1_000_000, 5_000_000, 10_000_000]:
+    for iters in [1_000, 5_000_000, 10_000_000]:
         y, proof = prove_n_weso(
             discriminant_challenge,
             initial_el,

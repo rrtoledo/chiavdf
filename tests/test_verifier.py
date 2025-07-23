@@ -1,7 +1,7 @@
 import secrets
 import time
 
-from chiavdf import create_discriminant, prove, verify_wesolowski
+from chiavdf import create_discriminant, prove_disc, verify_wesolowski
 
 
 def test_prove_and_verify():
@@ -16,7 +16,7 @@ def test_prove_and_verify():
 
     iters = 1_000_000
     t1 = time.time()
-    result = prove(discriminant_challenge, initial_el, discriminant_size, iters, "")
+    result = prove_disc(discriminant, initial_el, iters, "")
     t2 = time.time()
     print(f"IPS: {iters / (t2 - t1)}")
     result_y = result[:form_size]
@@ -34,7 +34,7 @@ def test_prove_and_verify():
     # Creates another proof starting at the previous output
     iters_2 = 200_000
     t1 = time.time()
-    result_2 = prove(discriminant_challenge, result_y, discriminant_size, iters_2, "")
+    result_2 = prove_disc(discriminant, result_y, iters_2, "")
     t2 = time.time()
     print(f"IPS: {iters_2 / (t2 - t1)}")
 
