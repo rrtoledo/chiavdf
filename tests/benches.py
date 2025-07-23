@@ -15,10 +15,6 @@ from chiavdf import (
     evaluate,
 )
 
-# install with:
-# pip3 install chiavdf tabulate
-
-
 def bench_prove_and_verify():
     # hard coded class group's element size in bqfc.h
     # if BQFC_MAX_D_BITS is changed, this value must be changed accordingly

@@ -98,6 +98,10 @@ jobs:
       run: |
         pip install pipx
 
+    - name: Install tabulate
+      run: |
+        pip install tabulate
+
     - name: Build and test
       env:
         CIBW_BUILD: ${{ matrix.python.cibw-build }}
@@ -188,6 +192,10 @@ jobs:
     - uses: Chia-Network/actions/setup-python@main
       with:
         python-version: ${{ matrix.python.major-dot-minor }}
+
+    - name: Install tabulate
+      run: |
+        pip install tabulate
 
     - name: flake8
       run: |
