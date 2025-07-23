@@ -8,10 +8,13 @@ def test_prove_and_verify():
     discriminant_challenge = secrets.token_bytes(10)
     discriminant_size = 512
     discriminant = create_discriminant(discriminant_challenge, discriminant_size)
+    
+    # hard coded class group's element size in bqfc.h
+    # if BQFC_MAX_D_BITS is changed, this value must be changed accordingly
     form_size = 388
     initial_el = b"\x08" + (b"\x00" * (form_size - 1))
 
-    iters = 1000000
+    iters = 1_000_000
     t1 = time.time()
     result = prove(discriminant_challenge, initial_el, discriminant_size, iters, "")
     t2 = time.time()
@@ -29,7 +32,7 @@ def test_prove_and_verify():
     assert is_valid
 
     # Creates another proof starting at the previous output
-    iters_2 = 200000
+    iters_2 = 200_000
     t1 = time.time()
     result_2 = prove(discriminant_challenge, result_y, discriminant_size, iters_2, "")
     t2 = time.time()

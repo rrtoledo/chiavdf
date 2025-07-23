@@ -71,10 +71,13 @@ def test_prove_n_weso_and_verify():
     print(
         f"discriminant_challenge {discriminant_challenge.hex()} discriminant {discriminant}"
     )
+    
+    # hard coded class group's element size in bqfc.h
+    # if BQFC_MAX_D_BITS is changed, this value must be changed accordingly
     form_size = 388
     initial_el = b"\x08" + (b"\x00" * (form_size - 1))
 
-    for iters in [1000000, 5000000, 10000000]:
+    for iters in [1_000_000, 5_000_000, 10_000_000]:
         y, proof = prove_n_weso(
             discriminant_challenge,
             initial_el,

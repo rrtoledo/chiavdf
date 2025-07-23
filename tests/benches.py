@@ -20,11 +20,15 @@ from chiavdf import (
 
 
 def bench_prove_and_verify():
+    # hard coded class group's element size in bqfc.h
+    # if BQFC_MAX_D_BITS is changed, this value must be changed accordingly
+    form_size = 388
+
     discriminant_challenge = secrets.token_bytes(10)
 
     discriminant_sizes = [4096]
     iterations = [10_000, 100_000, 1_000_000]
-    benches = 10
+    benches = 100
     table = []
     table_prime = []
     table_alpha = []
@@ -53,7 +57,6 @@ def bench_prove_and_verify():
             time_alpha_eval = []
             for b in range(benches):
                 discriminant = create_discriminant(discriminant_challenge, d)
-                form_size = 388
                 initial_el = b"\x08" + (b"\x00" * (form_size - 1))
 
                 t1 = time.time()
