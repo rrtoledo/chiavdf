@@ -1,24 +1,23 @@
 use sha2::{Digest, Sha256};
 
-use super::bindings;
+use super::c_bindings;
 use super::constants::DISCRIMINANT_SIZE;
 
 pub fn setup(seed: &[u8]) -> Vec<u8> {
     let mut disc = [0; DISCRIMINANT_SIZE / 8];
-    assert!(bindings::create_discriminant(seed, &mut disc));
-    return disc.to_vec();
+    assert!(c_bindings::create_discriminant(seed, &mut disc));
+    disc.to_vec()
 }
 
 pub fn init_accumulators(discriminant: &[u8]) -> (Vec<u8>, Vec<u8>) {
-    let acc = bindings::identity(discriminant).unwrap();
-    return (acc.clone(), acc);
+    let acc = c_bindings::identity(discriminant).unwrap();
+    (acc.clone(), acc)
 }
 
 pub fn init_seed(xs: &[Vec<u8>]) -> Vec<u8> {
     let mut hasher = Sha256::new();
     xs.iter().for_each(|xi| hasher.update(xi));
-    let seed = hasher.finalize().to_vec();
-    return seed;
+    hasher.finalize().to_vec()
 }
 
 pub fn update_accumulators(
@@ -34,20 +33,20 @@ pub fn update_accumulators(
     hasher.update(y_i);
     let exponent_seed = &hasher.finalize();
     let mut exponent = [0u8; 128 / 8];
-    let success = bindings::hash_int(exponent_seed, &mut exponent);
+    let success = c_bindings::hash_int(exponent_seed, &mut exponent);
     assert!(success);
 
-    let x_raised = bindings::power(discriminant, x_i, &exponent).unwrap();
-    let updated_acc_x = bindings::multiply(discriminant, acc_x, &x_raised).unwrap();
+    let x_raised = c_bindings::power(discriminant, x_i, &exponent).unwrap();
+    let updated_acc_x = c_bindings::multiply(discriminant, acc_x, &x_raised).unwrap();
 
-    let y_raised = bindings::power(discriminant, y_i, &exponent).unwrap();
-    let updated_acc_y = bindings::multiply(discriminant, acc_y, &y_raised).unwrap();
+    let y_raised = c_bindings::power(discriminant, y_i, &exponent).unwrap();
+    let updated_acc_y = c_bindings::multiply(discriminant, acc_y, &y_raised).unwrap();
 
-    return (
+    (
         updated_acc_x.to_vec(),
         updated_acc_y.to_vec(),
         exponent_seed.to_vec(),
-    );
+    )
 }
 
 pub fn prove_accumulator(
@@ -56,7 +55,7 @@ pub fn prove_accumulator(
     accumulator_y: &[u8],
     num_iterations: u64,
 ) -> Vec<u8> {
-    bindings::prove(discriminant, accumulator_x, accumulator_y, num_iterations).unwrap()
+    c_bindings::prove(discriminant, accumulator_x, accumulator_y, num_iterations).unwrap()
 }
 
 pub fn verify_accumulators(
@@ -66,7 +65,7 @@ pub fn verify_accumulators(
     proof: &[u8],
     num_iterations: u64,
 ) -> bool {
-    bindings::verify(
+    c_bindings::verify(
         discriminant,
         accumulator_x,
         accumulator_y,
@@ -92,13 +91,13 @@ mod tests {
 
         // Computing all elements
         let mut xs: Vec<Vec<u8>> = Vec::with_capacity(10);
-        let default_el = bindings::generator(discriminant).unwrap();
+        let default_el = c_bindings::generator(discriminant).unwrap();
         let mut rng = ChaCha20Rng::seed_from_u64(42);
         for _i in 0..10 {
             // Create new element
             // TODO use hash_to_class_group
             let seed_i = rng.next_u32() as u64;
-            let x_i = bindings::power(discriminant, &default_el, &seed_i.to_be_bytes()).unwrap();
+            let x_i = c_bindings::power(discriminant, &default_el, &seed_i.to_be_bytes()).unwrap();
             xs.push(x_i);
         }
 
@@ -113,9 +112,9 @@ mod tests {
 
                 // Compute the VDF evaluation and proof
                 let (y_i, pi_i) =
-                    bindings::evaluate_and_prove(discriminant, x_i, num_iterations).unwrap();
+                    c_bindings::evaluate_and_prove(discriminant, x_i, num_iterations).unwrap();
 
-                assert!(bindings::verify(
+                assert!(c_bindings::verify(
                     discriminant,
                     &x_i,
                     &y_i,

@@ -23,6 +23,26 @@ pub fn create_discriminant(seed: &[u8], result: &mut [u8]) -> bool {
     }
 }
 
+pub fn n_prove(discriminant: &[u8], x_s: &[u8], num_iterations: u64) -> Option<Vec<u8>> {
+    // SAFETY: The length of each individual array is passed in as to prevent buffer overflows.
+    // Exceptions are handled on the C++ side and a null pointer is returned for `data` if so.
+    unsafe {
+        let array = bindings::prove_wrapper(
+            discriminant.as_ptr(),
+            discriminant.len(),
+            x_s.as_ptr(),
+            x_s.len(),
+            num_iterations,
+        );
+        if array.data.is_null() {
+            return None;
+        }
+        let result = std::slice::from_raw_parts(array.data, array.length).to_vec();
+        bindings::delete_byte_array(array);
+        Some(result)
+    }
+}
+
 pub fn evaluate_and_prove(
     discriminant: &[u8],
     x_s: &[u8],
@@ -100,7 +120,7 @@ pub fn prove_ext(
     discriminant: &[u8],
     x_s: &[u8],
     y_s: &[u8],
-    inter_s: &Vec<u8>,
+    inter_s: &[u8],
     num_iterations: u64,
 ) -> Option<Vec<u8>> {
     // SAFETY: The length of each individual array is passed in as to prevent buffer overflows.

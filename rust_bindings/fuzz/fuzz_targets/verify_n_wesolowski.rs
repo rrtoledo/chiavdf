@@ -1,6 +1,6 @@
 #![no_main]
 
-use chiavdf::{create_discriminant, verify_n_wesolowski};
+use chiavdf::c_bindings::{create_discriminant, verify_n_wesolowski};
 use libfuzzer_sys::{arbitrary::Unstructured, fuzz_target};
 
 pub const DISCRIMINANT_SIZE: usize = 4_096;

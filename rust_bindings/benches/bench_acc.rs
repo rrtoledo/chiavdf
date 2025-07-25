@@ -3,7 +3,7 @@ use chiavdf::{
         init_accumulators, init_seed, prove_accumulator, setup, update_accumulators,
         verify_accumulators,
     },
-    bindings::{evaluate_and_prove, generator, power},
+    c_bindings::{evaluate_and_prove, generator, power},
 };
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rand::prelude::*;

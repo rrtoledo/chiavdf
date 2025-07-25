@@ -71,7 +71,7 @@ def test_prove_n_weso_and_verify():
     print(
         f"discriminant_challenge {discriminant_challenge.hex()} discriminant {discriminant}"
     )
-    
+
     # hard coded class group's element size in bqfc.h
     # if BQFC_MAX_D_BITS is changed, this value must be changed accordingly
     form_size = 388

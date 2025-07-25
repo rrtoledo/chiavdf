@@ -1,5 +1,5 @@
 use chiavdf::{
-    bindings::{
+    c_bindings::{
         create_discriminant, evaluate_and_prove, evaluate_to_prove, generator, power, prove,
         prove_ext, verify,
     },

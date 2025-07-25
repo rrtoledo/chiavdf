@@ -1,6 +1,6 @@
 #![no_main]
 
-use chiavdf::{create_discriminant, evaluate_and_prove, verify_n_wesolowski};
+use chiavdf::c_bindings::{create_discriminant, n_prove, verify_n_wesolowski};
 use libfuzzer_sys::{arbitrary::Unstructured, fuzz_target};
 
 pub const DISCRIMINANT_SIZE: usize = 4_096;
@@ -16,7 +16,7 @@ fuzz_target!(|data: &[u8]| {
 
     let mut default_el = [0; FORM_SIZE];
     default_el[0] = 0x08;
-    let (result, proof) = evaluate_and_prove(&disc, &default_el, 231).unwrap();
+    let proof = n_prove(&disc, &default_el, 231).unwrap();
     let valid = verify_n_wesolowski(&disc, &default_el, &proof, 231, 0);
     assert!(valid);
 });

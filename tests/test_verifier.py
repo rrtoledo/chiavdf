@@ -8,7 +8,7 @@ def test_prove_and_verify():
     discriminant_challenge = secrets.token_bytes(10)
     discriminant_size = 512
     discriminant = create_discriminant(discriminant_challenge, discriminant_size)
-    
+
     # hard coded class group's element size in bqfc.h
     # if BQFC_MAX_D_BITS is changed, this value must be changed accordingly
     form_size = 388
