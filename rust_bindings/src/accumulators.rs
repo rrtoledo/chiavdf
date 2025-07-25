@@ -76,6 +76,7 @@ pub fn verify_accumulators(
 
 #[cfg(test)]
 mod tests {
+    use super::super::hash;
     use super::*;
     use rand_chacha::ChaCha20Rng;
     use rand_core::{RngCore, SeedableRng};
@@ -91,14 +92,12 @@ mod tests {
 
         // Computing all elements
         let mut xs: Vec<Vec<u8>> = Vec::with_capacity(10);
-        let default_el = c_bindings::generator(discriminant).unwrap();
         let mut rng = ChaCha20Rng::seed_from_u64(42);
         for _i in 0..10 {
             // Create new element
-            // TODO use hash_to_class_group
-            let seed_i = rng.next_u32() as u64;
-            let x_i = c_bindings::power(discriminant, &default_el, &seed_i.to_be_bytes()).unwrap();
-            xs.push(x_i);
+            let seed_i = rng.next_u32().to_be_bytes();
+            let x_i = hash::efficient_hash(&discriminant, &seed_i);
+            xs.push(x_i.clone().unwrap());
         }
 
         // Computing the initial seed

@@ -190,6 +190,27 @@ pub fn verify_n_wesolowski(
     }
 }
 
+pub fn from_ab(discriminant: &[u8], a: &[u8], b: &[u8]) -> Option<Vec<u8>> {
+    // SAFETY: The length of each individual array is passed in as to prevent buffer overflows.
+    // Exceptions are handled on the C++ side and a null pointer is returned for `data` if so.
+    unsafe {
+        let array = bindings::from_ab(
+            discriminant.as_ptr(),
+            discriminant.len(),
+            a.as_ptr(),
+            a.len(),
+            b.as_ptr(),
+            b.len(),
+        );
+        if array.data.is_null() {
+            return None;
+        }
+        let result = std::slice::from_raw_parts(array.data, array.length).to_vec();
+        bindings::delete_byte_array(array);
+        Some(result)
+    }
+}
+
 pub fn identity(discriminant: &[u8]) -> Option<Vec<u8>> {
     // SAFETY: The length of each individual array is passed in as to prevent buffer overflows.
     // Exceptions are handled on the C++ side and a null pointer is returned for `data` if so.

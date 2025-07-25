@@ -176,6 +176,33 @@ extern "C" {
         delete[] array.data;
     }
 
+    // Return form from  discriminant, a and b
+    ByteArray from_ab(const uint8_t* discriminant_bytes, size_t discriminant_size, const uint8_t* a_bytes, size_t a_size, const uint8_t* b_bytes, size_t b_size) {
+        try {
+            integer discriminant;
+            mpz_import(discriminant.impl, discriminant_size, 1, 1, 0, 0, discriminant_bytes);
+            discriminant = - discriminant;
+
+            integer a;
+            mpz_import(a.impl, a_size, 1, 1, 0, 0, a_bytes);
+
+            integer b;
+            mpz_import(b.impl, b_size, 1, 1, 0, 0, b_bytes);
+
+            form x = form::from_abd(a,b, discriminant);
+
+            std::vector<uint8_t> result = SerializeForm(x, discriminant.num_bits());
+
+            // Allocate memory for the result and copy data
+            uint8_t* resultData = new uint8_t[result.size()];
+            std::copy(result.begin(), result.end(), resultData);
+
+            return ByteArray  { resultData, result.size() };
+        } catch (...) {
+            return ByteArray { nullptr, 0 };
+        }
+    }
+
     // Return the class group identity element
     ByteArray identity_wrapper(const uint8_t* discriminant_bytes, size_t discriminant_size) {
         try {

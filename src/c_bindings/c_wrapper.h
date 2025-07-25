@@ -24,6 +24,7 @@ bool verify_wrapper(const uint8_t* discriminant_bytes, size_t discriminant_size,
 bool verify_n_wesolowski_wrapper(const uint8_t* discriminant_bytes, size_t discriminant_size, const uint8_t* x_s, const uint8_t* proof_blob, size_t proof_blob_size, uint64_t num_iterations, uint64_t recursion);
 void delete_byte_array(ByteArray array);
 
+ByteArray from_ab(const uint8_t* discriminant_bytes, size_t discriminant_size, const uint8_t* a_bytes, size_t a_size, const uint8_t* b_bytes, size_t b_size);
 ByteArray identity_wrapper(const uint8_t* discriminant_bytes, size_t discriminant_size);
 ByteArray generator_wrapper(const uint8_t* discriminant_bytes, size_t discriminant_size);
 ByteArray power_wrapper(const uint8_t* discriminant_bytes, size_t discriminant_size, const uint8_t* x_s, size_t form_size, const uint8_t* power, size_t power_size);

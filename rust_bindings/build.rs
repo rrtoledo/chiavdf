@@ -70,6 +70,7 @@ fn main() {
         .allowlist_function("verify_wrapper")
         .allowlist_function("free")
         .allowlist_function("delete_byte_array")
+        .allowlist_function("from_ab")
         .allowlist_function("generator_wrapper")
         .allowlist_function("identity_wrapper")
         .allowlist_function("hash_int_wrapper")
