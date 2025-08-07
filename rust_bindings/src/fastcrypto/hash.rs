@@ -3,19 +3,14 @@
 use crate::c_bindings;
 
 use lazy_static::lazy_static;
-use num_bigint::{BigInt, BigUint, Sign};
+use num_bigint::{BigInt, Sign};
 use num_integer::Integer;
 use num_traits::{FromPrimitive, One, Signed};
 use std::ops::{Shl, Shr};
 
-use sha2::{Digest, Sha256};
-
-use num_prime::nt_funcs::is_prime;
-use num_prime::PrimalityTestConfig;
-
 use super::crt::solve_congruence_equation_system;
-use super::jacobi;
 use super::modular_sqrt::modular_square_root;
+use sha2::{Digest, Sha256};
 
 /// The security parameter for the hash function in bits. The image will be at least
 /// 2^{2*SECURITY_PARAMETER} large to ensure that the hash function is collision resistant.
@@ -36,15 +31,6 @@ const DEFAULT_PRIME_FACTORS: u64 = 2;
 /// (a2, _, _)^T then it is possible to compute (a1*a2, _, _)^T as the composition (a1, _, _)^T *
 /// (a2, _, _)^T.
 const DEFAULT_PRIME_FACTOR_SIZE_IN_BYTES: u64 = 20;
-
-/// Check if the input is a probable prime.
-///
-/// We use the Baillie-PSW primality test here. This is in accordance with the recommendations of "Prime and
-/// Prejudice: Primality Testing Under Adversarial Conditions" by Albrecht et al. (https://eprint.iacr.org/2018/749)
-/// because this test is also used in use cases where an adversary could influence the input.
-fn is_probable_prime(x: &BigUint) -> bool {
-    is_prime(x, Some(PrimalityTestConfig::bpsw())).probably()
-}
 
 /// Generate a random quadratic form from a seed with the given discriminant. This method is
 /// deterministic, and it is a random oracle on a large subset of the class group.
@@ -132,27 +118,15 @@ fn sample_modulus(
 
     // Create a first factor of size lambda bits
     let mut big_factor_u8 = [0u8; SECURITY_PARAMETER_IN_BITS as usize / 8];
-    let mut big_factor: BigInt;
     loop {
-        assert!(c_bindings::hash_prime(&rng, &mut big_factor_u8));
-        rng = Sha256::digest(rng);
-        big_factor = BigInt::from_bytes_be(Sign::Plus, &big_factor_u8);
-
-        // The primality check does not try divisions with small primes, so we do it here. This speeds up
-        // the algorithm significantly.
-        if PRIMES.iter().any(|p| big_factor.is_multiple_of(p)) {
+        if !c_bindings::hash_prime(&rng, &mut big_factor_u8) {
             continue;
         }
-
-        if jacobi::jacobi(&discriminant_bigint, &big_factor).expect("factor is odd and positive")
-            == 1
-            && is_probable_prime(big_factor.magnitude())
-        {
-            // Found a valid factor
-            break;
-        }
+        rng = Sha256::digest(rng);
+        break;
     }
     // This only fails if the discriminant is not prime.
+    let big_factor = BigInt::from_bytes_be(Sign::Plus, &big_factor_u8);
     let big_square_root = modular_square_root(&discriminant_bigint, &big_factor, false).unwrap();
     factors.push(big_factor);
     square_roots.push(big_square_root);
@@ -162,27 +136,16 @@ fn sample_modulus(
         let mut factor_u8 = [0u8; DEFAULT_PRIME_FACTOR_SIZE_IN_BYTES as usize];
         let mut factor: BigInt;
         loop {
-            assert!(c_bindings::hash_prime(&rng, &mut factor_u8));
+            if !c_bindings::hash_prime(&rng, &mut factor_u8) {
+                continue;
+            }
             rng = Sha256::digest(rng);
             factor = BigInt::from_bytes_be(Sign::Plus, &factor_u8);
 
             if factors.contains(&factor) {
                 continue;
             }
-
-            // The primality check does not try divisions with small primes, so we do it here. This speeds up
-            // the algorithm significantly.
-            if PRIMES.iter().any(|p| factor.is_multiple_of(p)) {
-                continue;
-            }
-
-            if jacobi::jacobi(&discriminant_bigint, &factor).expect("factor is odd and positive")
-                == 1
-                && is_probable_prime(factor.magnitude())
-            {
-                // Found a valid factor
-                break;
-            }
+            break;
         }
         // This only fails if the discriminant is not prime.
         let square_root = modular_square_root(&discriminant_bigint, &factor, false).unwrap();
@@ -222,15 +185,4 @@ fn p_tilde_primes(n: u64) -> (f64, f64) {
         n_f64 * (n_f64.ln() + n_f64.ln().ln() - 1.0),
         n_f64 * (n_f64.ln() + n_f64.ln().ln()),
     )
-}
-
-lazy_static! {
-    /// The odd primes smaller than 100.
-    pub static ref PRIMES: Vec<BigInt> = [
-        3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89,
-        97,
-    ]
-    .into_iter()
-    .map(BigInt::from)
-    .collect();
 }
