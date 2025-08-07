@@ -146,7 +146,7 @@ fn sample_modulus(
 
         if jacobi::jacobi(&discriminant_bigint, &big_factor).expect("factor is odd and positive")
             == 1
-            && is_probable_prime(factor.magnitude())
+            && is_probable_prime(big_factor.magnitude())
         {
             // Found a valid factor
             break;
